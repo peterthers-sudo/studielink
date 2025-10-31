@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Din Kvote 2-score</h2>
+
+<div class="card" style="text-align:center; padding:2rem;">
+
+  <h1 style="font-size: 3rem; margin:0;">{{ procent }}%</h1>
+
+  <div class="progress" style="height:20px; margin-top:1rem;">
+    <div class="progress-bar {{ kategori }}" style="width: {{ procent }}%;"></div>
+  </div>
+
+  <p class="bulle" style="margin-top:1rem;">{{ kommentar }}</p>
+
+</div>
+
+<button onclick="history.back()" class="knap-vaelg" style="margin-top:1.5rem;">Tilbage</button>
+
+<a href="/kvote2?score={{ procent }}" class="knap-standard" style="margin-top:1.5rem; display:inline-block;">
+  Vis uddannelser hvor min score giver mening 🎯
+</a>
+
+{% endblock %}

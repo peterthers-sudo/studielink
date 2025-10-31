@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block content %}
+
+<form method="POST">
+  <div class="felt">
+    <label for="gennemsnit">Karaktergennemsnit</label>
+    <input type="text" name="gennemsnit" id="gennemsnit" placeholder="Fx 9,4"
+           value="{{ gennemsnit if gennemsnit else '' }}" required>
+  </div>
+
+  <div class="felt">
+    <label for="institution">Institution</label>
+    <select name="institution" id="institution">
+      <option value="">Alle</option>
+      {% for i in institutioner %}
+        <option value="{{ i }}" {% if i == valgt_institution %}selected{% endif %}>{{ i }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="felt">
+    <label for="by">By</label>
+    <select name="by" id="by">
+      <option value="">Alle</option>
+      {% for b in byer %}
+        <option value="{{ b }}" {% if b == valgt_by %}selected{% endif %}>{{ b }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="felt checkbox">
+    <input type="checkbox" name="medtag_alle" {% if medtag_alle %}checked{% endif %}>
+    Vis også uddannelser, hvor du skal have held i Kvote 2
+  </div>
+
+  <div class="knap-gruppe">
+    <button type="submit" formaction="/" class="knap-standard">Hvad KAN jeg blive!</button>
+    <button type="submit" formaction="/vaelg_for_mig" class="knap-vaelg">Hvad SKAL jeg være 🎲</button>
+  </div>
+</form>
+
+{% if resultater %}
+
+  {% if mode == "random" %}
+    {% for r in resultater %}
+    <div class="resultater">
+      <h2>Her er dommen, makker:</h2>
+      <h1>🎲 Studiebøllen siger du skal læse {{ r.navn }}</h1>
+    </div>
+    {% endfor %}
+
+  {% else %}
+
+    <div class="introtekst">
+      {% if medtag_alle %}
+      <h1>Alle uddannelser</h1>
+      <p>
+        Du har valgt at se <strong>alle uddannelser</strong> – også dem, hvor kun de hardcore stræbere slipper ind. 💪
+        Tallene stammer fra <strong>seneste optagelsesrunde</strong>, og grænserne kan ændre sig lidt hvert år.
+      </p>
+      {% else %}
+      <h1>Uddannelser der matcher dit snit, og dem som næsten gør</h1>
+      <p>
+        Jeg har fundet uddannelser, hvor adgangskvotienten er <strong>op til 0,5 over</strong> dit snit.
+        Du er altså enten inde eller tæt på. Tallene er fra <strong>seneste optagelse</strong>
+        – ligesom dine gode intentioner om at læse. 📚
+      </p>
+      {% endif %}
+    </div>
+
+  {% endif %}
+
+  {% for r in resultater %}
+  <div class="card">
+    <h3>{{ r.navn }}</h3>
+    <p><strong>Institution:</strong> {{ r.institution }}</p>
+    <p><strong>By:</strong> {{ r.by_navn }}</p>
+    {% if r.studiestart %}
+      <p><strong>Studiestart:</strong> {{ r.studiestart }}</p>
+	  {% if r.info_link %}
+  <p>
+    <a href="{{ r.info_link }}" target="_blank" style="color:#004a80; font-weight:600; text-decoration:none;">
+      🔗 Læs mere om uddannelsen
+    </a>
+  </p>
+{% endif %}
+    {% endif %}
+    <p><strong>Adgangskvotient:</strong> {{ r.adgangskvotient }}</p>
+
+    <div class="progress">
+      <div class="progress-bar {{ r.kategori }}" style="width: {{ r.bredde }}%;"></div>
+      <div class="markering" style="left: {{ r.markering }}%;"></div>
+    </div>
+
+    <p class="bulle">
+      {% if r.kategori == 'grøn' %}
+        Du er så langt inde, at de burde lade dig undervise. 🎓
+      {% elif r.kategori == 'lysegrøn' %}
+        Lækkert! Du glider lige forbi køen – ingen sved på panden. 😎
+      {% elif r.kategori == 'gul' %}
+        Spot on! Lige på grænsen, respekt. 🕶️
+      {% elif r.kategori == 'orange' %}
+        Argh… tæt på! En enkelt aflevering mere, og du havde været der. 📚
+      {% elif r.kategori == 'rød' %}
+        Nope – no chance. Med mindre du rammer jackpot i Kvote 2. 💔
+      {% else %}
+        De tager imod alle! Du skal nærmest bare kunne skrive dit navn. ✍️
+      {% endif %}
+    </p>
+  </div>
+  {% endfor %}
+
+{% endif %}
+
+{% endblock %}

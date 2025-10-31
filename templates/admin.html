@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<title>Studielink Admin</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f3f5f7;margin:0}
+h1{background:#004a80;color:#fff;padding:1rem;margin:0;position:sticky;top:0}
+h1 a{float:right;color:#fff;text-decoration:none;font-size:.9rem;margin-left:10px}
+.controls{display:flex;gap:1rem;align-items:center;justify-content:center;background:#e9f2f9;padding:1rem;flex-wrap:wrap}
+select,input{padding:.4rem .6rem;font-size:.95rem;border:1px solid #ccc;border-radius:5px}
+button{background:#004a80;color:#fff;border:none;border-radius:5px;padding:.5rem 1rem;cursor:pointer;font-weight:600}
+button:hover{background:#006bb3}
+.status{text-align:center;color:#004a80;font-weight:600;margin:.6rem}
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    border: 1px solid #ccc;
+    padding: 6px 8px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+th {
+  background-color: #004a80;
+  color: white;
+  font-weight: 600;
+  position: sticky;
+  top: 68px; /* justér denne så den rammer præcis under topbjælken */
+  z-index: 20;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+
+  tr:nth-child(even) td {
+    background-color: #f9f9f9;
+  }
+
+  tr:hover td {
+    background-color: #eef6ff;
+  }
+
+</style>
+</head>
+<body>
+<h1>Rediger uddannelser
+  <a href="/export_csv">Eksportér CSV</a>
+  <a href="/logout">Log ud</a>
+</h1>
+
+<div class="controls">
+  <form id="importForm" enctype="multipart/form-data" style="display:flex;gap:1rem;align-items:center;">
+    <input type="file" name="file" accept=".csv">
+    <button type="submit">Importér CSV</button>
+  </form>
+  <input id="filterText" placeholder="Søg tekst...">
+  <select id="filterBy">
+    <option value="">Alle byer</option>
+    {% for b in byer %}
+      <option value="{{ b }}">{{ b }}</option>
+    {% endfor %}
+  </select>
+  <select id="filterInstitution">
+    <option value="">Alle institutioner</option>
+    {% for i in institutioner %}
+      <option value="{{ i }}">{{ i }}</option>
+    {% endfor %}
+  </select>
+  <button id="saveAll">Gem alt</button>
+</div>
+
+<div class="status" id="status">Klik i en celle for at redigere. Ændringer gemmes automatisk.</div>
+
+{% if data %}
+  <p style="color:red;">ANTAL: {{ data|length }}</p>
+  <table id="udbudTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Institution</th>
+        <th>Optomrnr</th>
+        <th>Sprog</th>
+        <th>Uddannelsestype</th>
+        <th>Navn</th>
+        <th>Studiestart</th>
+        <th>By</th>
+        <th>Adgangskvotient</th>
+        <th>Standby kvotient</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in data %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td contenteditable="true" data-column="institution">{{ r.institution }}</td>
+        <td contenteditable="true" data-column="optomrnr">{{ r.optomrnr }}</td>
+        <td contenteditable="true" data-column="sprog">{{ r.sprog }}</td>
+        <td contenteditable="true" data-column="udd_type">{{ r.udd_type }}</td>
+        <td contenteditable="true" data-column="navn">{{ r.navn }}</td>
+        <td contenteditable="true" data-column="studiestart">{{ r.studiestart }}</td>
+        <td contenteditable="true" data-column="by_navn">{{ r.by_navn }}</td>
+        <td contenteditable="true" data-column="adgangskvotient">{{ r.adgangskvotient }}</td>
+        <td contenteditable="true" data-column="standby_kvotient">{{ r.standby_kvotient }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p style="padding:2rem; font-weight:600; text-align:center;">
+    Ingen uddannelser fundet i databasen endnu.<br>
+    Brug <strong>Importér CSV</strong>-knappen herunder for at tilføje dem.
+  </p>
+{% endif %}
+
+
+<script>
+const statusBox=document.getElementById("status");
+const rows=[...document.querySelectorAll("#udbudTable tbody tr")];
+const changed=[];
+document.querySelectorAll('td[contenteditable="true"]').forEach(td=>{
+  td.addEventListener("blur",()=>{
+    const id=td.parentElement.dataset.id;
+    const col=td.dataset.col;
+    const val=td.innerText.trim();
+    changed.push({id, column:col, value:val});
+    statusBox.textContent="Ændring markeret til gemning.";
+  });
+});
+
+// Gem ALT
+document.getElementById("saveAll").addEventListener("click",async()=>{
+  if(changed.length===0){statusBox.textContent="Ingen ændringer.";return;}
+  statusBox.textContent="Gemmer ændringer...";
+  const res=await fetch("/update_batch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(changed)});
+  if(res.ok){statusBox.textContent="✅ Alle ændringer gemt.";changed.length=0;}else{statusBox.textContent="❌ Fejl ved gemning.";}
+});
+
+// Tekstfilter
+document.getElementById("filterText").addEventListener("keyup",filt);
+document.getElementById("filterBy").addEventListener("change",filt);
+document.getElementById("filterInstitution").addEventListener("change",filt);
+function filt(){
+  const txt=document.getElementById("filterText").value.toLowerCase();
+  const by=document.getElementById("filterBy").value.toLowerCase();
+  const inst=document.getElementById("filterInstitution").value.toLowerCase();
+  rows.forEach(r=>{
+    const tds=[...r.children].map(td=>td.textContent.toLowerCase());
+    const matchText=!txt||tds.some(t=>t.includes(txt));
+    const matchBy=!by||tds.some(t=>t.includes(by));
+    const matchInst=!inst||tds.some(t=>t.includes(inst));
+    r.style.display=(matchText&&matchBy&&matchInst)?"":"none";
+  });
+}
+// --- Importér CSV ---
+document.getElementById("importForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  statusBox.textContent = "Uploader og importerer...";
+  const res = await fetch("/import_csv", { method: "POST", body: formData });
+  const txt = await res.text();
+  statusBox.textContent = txt.includes("✅") ? txt : "❌ " + txt;
+  if (res.ok) setTimeout(() => location.reload(), 3000);
+});
+
+</script>
+</body>
+</html>

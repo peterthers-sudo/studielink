@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <title>Dit match 🎲</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .result-container {
+      max-width: 800px;
+      margin: 80px auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .card {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1.5rem;
+      background-color: #f9fafb;
+      margin-bottom: 1rem;
+    }
+
+    .card h3 {
+      margin: 0 0 0.6rem 0;
+      color: #004a80;
+      font-size: 1.4rem;
+    }
+
+    .card p {
+      margin: 0.3rem 0;
+      font-size: 1rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 1.5rem;
+      color: #004a80;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<div class="result-container">
+  
+  <h1>🎲 Vi valgte en uddannelse til dig</h1>
+
+  <div class="card">
+    <h3>{{ valgt.navn }}</h3>
+
+    <p><strong>Institution:</strong> {{ valgt.institution }}</p>
+    <p><strong>By:</strong> {{ valgt.by_navn }}</p>
+
+    {% if valgt.studiestart %}
+      <p><strong>Studiestart:</strong> {{ valgt.studiestart }}</p>
+    {% endif %}
+
+    <p><strong>Adgangskvotient:</strong> {{ valgt.adgangskvotient }}</p>
+  </div>
+
+  <a href="/" class="back-link">← Tilbage til forsiden</a>
+
+</div>
+
+</body>
+</html>

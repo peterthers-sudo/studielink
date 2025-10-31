@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Kvote 2 – Hvor har *du* en chance?</h2>
+
+<form method="POST" style="margin-bottom: 2rem;">
+
+  <label>Karakterkvotient (2.0 - 12.7)</label>
+  <input type="text" name="snit" placeholder="Fx 7,8"
+         value="{{ request.form.get('snit','') }}">
+
+  <label>Erhvervserfaring (0-5)</label>
+  <input type="number" name="score_erhverv" min="0" max="5"
+         value="{{ request.form.get('score_erhverv','') }}">
+
+  <label>Udlandsophold / frivilligt arbejde (0-5)</label>
+  <input type="number" name="score_udland" min="0" max="5"
+         value="{{ request.form.get('score_udland','') }}">
+
+  <label>Højskole / forberedende ophold (0-5)</label>
+  <input type="number" name="score_hojskole" min="0" max="5"
+         value="{{ request.form.get('score_hojskole','') }}">
+
+  <label>Motiveret ansøgning (0-5)</label>
+  <input type="number" name="score_ansogning" min="0" max="5"
+         value="{{ request.form.get('score_ansogning','') }}">
+
+  <label>Relevante projekter / kurser (0-5)</label>
+  <input type="number" name="score_projekter" min="0" max="5"
+         value="{{ request.form.get('score_projekter','') }}">
+
+  <button type="submit" class="knap-standard">Opdater vurdering</button>
+
+</form>
+
+{% if score_total is not none %}
+<div class="score-box">
+  <h3>🔍 Din Kvote 2-profil:</h3>
+  <p><strong>{{ score_total }} / {{ max_points }} point</strong></p>
+  <p>
+    Chance: 
+    {% if chance_score >= 0.80 %}<span style="color:#3cb371;">Høj ✅ (grøn)</span>
+    {% elif chance_score >= 0.55 %}<span style="color:#f2c94c;">Mulig 🤝 (gul)</span>
+    {% elif chance_score >= 0.35 %}<span style="color:#f2994a;">Afhænger ✍️ (orange)</span>
+    {% else %}<span style="color:#eb5757;">Lav ⚠️ (rød)</span>
+    {% endif %}
+  </p>
+
+  <!-- Visuel bar -->
+  <div class="score-bar">
+    <div class="score-fill" style="width: {{ (chance_score * 100) | round(0) }}%;"></div>
+  </div>
+</div>
+{% endif %}
+
+
+{% if resultater %}
+  {% for r in resultater %}
+    <div class="card">
+    <h3>{{ r.navn }}</h3>
+	<div class="chance-meter chance-{{ r.kategori }}">
+  <div class="chance-fill"></div>
+</div>
+
+    <p><strong>Institution:</strong> {{ r.institution }}</p>
+    <p><strong>By:</strong> {{ r.by_navn }}</p>
+    {% if r.studiestart %}
+      <p><strong>Studiestart:</strong> {{ r.studiestart }}</p>
+    {% endif %}
+    <p><strong>Adgangskvotient:</strong> {{ r.adgangskvotient }}</p>
+
+{% if r.kategori == 'grøn' %}
+  <p class="chance-label">Høj chance ✅</p>
+{% elif r.kategori == 'gul' %}
+  <p class="chance-label">Mulig chance 🤝</p>
+{% elif r.kategori == 'orange' %}
+  <p class="chance-label">Afhænger af ansøgning ✍️</p>
+{% elif r.kategori == 'rød' %}
+  <p class="chance-label">Lav chance ⚠️</p>
+{% endif %}
+
+    </div>
+  {% endfor %}
+{% endif %}
+<hr style="margin:3rem 0; border:none; border-top:2px solid #ddd;">
+
+<h2>Sådan vinder du i Kvote 2 🔥</h2>
+
+<p>Kvote 2 handler ikke om held. Det handler om at vise, at du faktisk har *valgt* uddannelsen, ikke bare fundet den på uddannelsesguiden kl. 02:43 en tirsdag.</p>
+
+<h3>Regel #1: Ingen kærlighedserklæring til faget</h3>
+<p>“Jeg har altid elsket mennesker / design / natur” ← <strong>Nope.</strong>  
+Alle skriver det. Det siger *ingenting* om dig.</p>
+
+<h3>Regel #2: Det eneste der tæller: Handling → Læring → Motivation</h3>
+<p>Vis noget du har gjort, som lærte dig noget, som gør at du vil dette.</p>
+
+<h3>Struktur (brug denne, ikke tænk mere over det):</h3>
+<ol style="line-height:1.9;">
+  <li><strong>Start</strong> → Hvad fik dig til at overveje uddannelsen? (1 sætning, ikke roman)</li>
+  <li><strong>Bevis</strong> → Eksempel på noget du har lavet, oplevet eller arbejdet med</li>
+  <li><strong>Refleksion</strong> → Hvad lærte du af det? (meget vigtigt)</li>
+  <li><strong>Match</strong> → Hvorfor passer det ind på *denne* uddannelse?</li>
+  <li><strong> Fremtid</strong> → Hvor er du om 3 år? (konkret → “jeg vil arbejde med … / forske i …”)</li>
+</ol>
+
+<h3>Ord du bør undgå:</h3>
+<ul style="line-height:1.8;">
+  <li>“Jeg brænder for…”</li>
+  <li>“Jeg elsker…”</li>
+  <li>“Jeg har altid interesseret mig for…”</li>
+</ul>
+
+<h3>Ord du gerne må bruge:</h3>
+<ul style="line-height:1.8;">
+  <li>“Jeg har erfaret…”</li>
+  <li>“Jeg opdagede, at…”</li>
+  <li>“Det viste mig, hvorfor…”</li>
+  <li>“Derfor vil jeg lære mere om…”</li>
+</ul>
+
+<h3>Eksempel på en *god start*:</h3>
+<p><em>“Sidste år planlagde jeg et frivilligt projekt på min skole. Jeg opdagede, at jeg er god til at koordinere mennesker, men mangler faglig viden om ledelse. Derfor søger jeg Erhvervsøkonomi – ikke fordi ‘jeg elsker mennesker’, men fordi jeg har prøvet det, og jeg ved hvad jeg mangler.”</em></p>
+
+<h3>Quick mindset:</h3>
+<ul style="line-height:1.8;">
+  <li>Du skal ikke være perfekt</li>
+  <li>Du skal være <strong>reflekteret</strong></li>
+  <li>“Jeg gjorde → jeg lærte → derfor søger jeg” = W 💥</li>
+</ul>
+
+<button class="knap-vaelg" style="margin-top:1.5rem;">
+  Giv mig en skabelon i PDF 📄
+</button>
+{% endblock %}
+
+
+
